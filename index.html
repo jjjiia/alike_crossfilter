@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset='utf-8' />
+    <title>alike map</title>
+  <script type="text/javascript" src="static/javascripts/mapbox-gl.js"></script>
+ 	<script type="text/javascript" src="static/javascripts/queue.v1.min.js"></script>
+ 	<script type="text/javascript" src="static/javascripts/jquery.min.js"></script>
+ 	<script type="text/javascript" src="static/javascripts/d3.v3.min.js"></script>
+   <script type="text/javascript" src="static/javascripts/crossfilter.js"  ></script>
+  <script type="text/javascript" src="static/javascripts/dc.js"></script>
+<!--  <script type="text/javascript" src="static/javascripts/mapbox-gl-draw.js"></script>
+  <script type="text/javascript" src="static/javascripts/mapbox-gl-geocoder.min.js"></script>
+  <script type="text/javascript" src="static/javascripts/turf.min.js"></script>
+  
+  -->
+  <script type="text/javascript" src="static/javascripts/d3.tip.v0.6.3.js"></script>  
+  <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css" integrity="sha384-Gn5384xqQ1aoWXA+058RXPxPg6fy4IWvTNh0E263XmFcJlSAwiGgFAW/dAiS6JXm" crossorigin="anonymous">
+  <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/js/bootstrap.min.js" integrity="sha384-JZR6Spejh4U02d8jOt6vLEHfe/JQGiRRSQQxSfFWpi1MquVdAyjUar5+76PVCmYl" crossorigin="anonymous"></script>
+  
+  
+  <!--<script type="text/javascript" src="static/javascripts/bootstrap.min.js"></script>
+  <script type="text/javascript" src="static/javascripts/mapbox.js"></script>-->
+  
+  <link rel="stylesheet" type="text/css" href="static/stylesheets/bootstrap-theme.min.css">
+  <link rel="stylesheet" type="text/css" href="static/stylesheets/bootstrap.min.css">
+  <link rel="stylesheet" type="text/css" href="static/stylesheets/mapbox-gl-geocoder.css">
+  <link rel="stylesheet" type="text/css" href="static/stylesheets/mapbox-gl.css">
+  
+   <link rel="stylesheet" type="text/css" href="dc.css"/>
+   
+    <style>
+        body { margin:0; padding:0;
+          font-family:helvetica;
+          font-size:11px;
+         }
+         a{
+           color:#aaaaaa;
+           font-size:11px;
+         }
+         #map { 
+           position:fixed; top:0px; left:0px; width:100%; height:100%;padding:0px;margin:0px;overflow:hidden;
+           z-index:-999;
+        }
+        #header{
+          border:1px solid black;
+          padding:10px;
+        }
+        #charts{
+        }
+        #count{
+                    
+        }
+        #smallMaps{
+          border:1px solid black;
+        }
+        .chartContent{
+          width:100%;
+        }
+        .row{
+          margin:10px;
+        }
+        .select{
+          width:100%;
+        }
+        .dropdown{
+          width:100%;
+          font-size:11px;
+        }
+        .left-panel{
+          background-color:rgba(255,255,250,.7);
+          border:1px solid black;
+        }
+    </style>
+</head>
+<body>
+<div id="map"></div>
+<div class="container-fluid">
+
+    <div class="row" id="header">
+      header
+    </div>
+
+    <div class="row">
+        <div class="col-md-3 left-panel">
+
+            <div class="row">
+              <div id="count">count</div>
+            </div>
+            
+            <div class"row">
+                <div id="charts"></div>
+            </div>
+
+        </div>
+
+        <div class="col-md-8">space</div>
+        <div class="col-md-1 col-md-offset-8" id="smallMaps">
+            .col-md-4 .col-md-offset-4
+        </div>
+
+    </div>  
+<div>    
+<script src='crossfilter_aplace.js'></script>
+
+</body>
+</html>
