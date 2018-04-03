@@ -11,6 +11,9 @@ var centroids = null
 var names = null
 var dataKeys = null
 var census = null
+var censusDictionary = null
+var currentTopics = ["SE_T145_002","SE_T013_002","SE_T025_005","SE_T147_001"]
+
 queue()
     .defer(d3.csv,"census_filtered_population_10.csv")
     .defer(d3.json,"census_keys_short.json")
@@ -23,12 +26,26 @@ function dataDidLoad(error,censusfile,censusDictionaryFile,namesFile,centroidsFi
     census = censusfile
     names = namesFile
     centroids = centroidsFile
+    censusDictionary = makeDictionary(census)
     
     basemap()
     setupCharts()
-    
-      
 }
+function makeDictionary(data){
+    var formatted = {}
+    for(var i in data){
+        var gid = data[i]["Gid"]
+        formatted[gid] = data[i]
+    }
+    return formatted
+}
+function replaceCurrentTopics(oldTopic,newTopic){
+    var index = currentTopics.indexOf(oldTopic);
+    if (index !== -1) {
+        currentTopics[index] = newTopic;
+    }
+}
+
 function addSelect(div,currentKey,ndx,t){
     var select = div.append("select").attr("class","dropdown").attr("id","dropdown"+t).attr("name","dropdown")
     var topics = Object.keys(dataKeys)
@@ -41,21 +58,19 @@ function addSelect(div,currentKey,ndx,t){
     }
     document.getElementById("dropdown"+t).onchange=function(){
 //        console.log(this.value)
-        var newtopic = this.value
+        
+        var newTopic = this.value
+        replaceCurrentTopics(currentKey,newTopic)
+
         var tcolumn = ndx.dimension(function(d){
-          return parseFloat(d[ newtopic])
+          return parseFloat(d[ newTopic])
         })
         var tgroup = tcolumn.group()
         
         charts["_"+t].group(tgroup)
             .dimension(tcolumn)  
-        
         charts["_"+t].render()
-//        d3.select("#chart_"+t).remove()
-//       // d3.select("#reset"+div).remove()
-//        d3.select("#"+currentKey).append("div")
-//        .attr("id","chart_"+t).attr("class","chartContent")
-//        drawBar(column,ndx)
+
     }
 }
 function setupCharts(){
@@ -70,7 +85,7 @@ function setupCharts(){
             all:"%total-count Tracts<br/>"
         })
         //SE_T145_002
-        var topics=["SE_T145_002","SE_T013_002","SE_T025_005","SE_T147_001"]
+        var topics=currentTopics
 
     for(var t in topics){
         var topic = topics[t]
@@ -99,6 +114,25 @@ function setupBar(topic,ndx,t){
     var chartContent = chartContainer.append("div")
         .attr("id","chart_"+t).attr("class","chartContent")
 }
+function  getIds(filteredData){
+    var gids = []
+    filteredData.forEach(function (d) {
+        var gid = d["Gid"].replace("14000US","1400000US")
+        gids.push(gid);
+    });
+    return gids
+}
+function filtermap(filteredData){
+    var filteredIds = getIds(filteredData)
+    var filter =  ["in","AFFGEOID"].concat(filteredIds)
+    map.setFilter("tracts", filter);
+//    d3.selectAll(".smallMap").remove()
+   // for(var i in filteredIds.slice(0,20)){
+   //     var gid = filteredIds.slice(0,20)[i]
+   //    // drawSmallMap(gid)
+   // }
+    
+}
 function drawBar(topic,ndx,t){
     var tcolumn = ndx.dimension(function(d){
       return parseFloat(d[topic])
@@ -124,15 +158,25 @@ function drawBar(topic,ndx,t){
      charts["_"+t].yAxis().ticks(3)
     
     charts["_"+t].on("filtered",function(){
-       // filteredData=column.top(Infinity)
-      //  filtermap(filteredData)
+        filteredData=tcolumn.top(Infinity)
+        filtermap(filteredData)
        var max = tcolumn.top(1)[0][topic]
        var min = tcolumn.bottom(1)[0][topic]
         d3.select("#reset_"+t).html(min+" - "+max+" <u>click to reset</u>")
            //charts[key].filterAll()
     })
 }
-
+function getFeatureData(geoId){
+    var data = censusDictionary[geoId]
+    dc.filterAll();
+    
+    for(var t in currentTopics){
+        var topic = currentTopics[t]
+        var value = parseFloat(data[topic])
+        charts["_"+t].filter(dc.filters.RangedFilter(value-3, value+3));        
+    }
+    dc.redrawAll();
+}
 function basemap(){
     mapboxgl.accessToken = 'pk.eyJ1IjoiampqaWlhMTIzIiwiYSI6ImNpbDQ0Z2s1OTN1N3R1eWtzNTVrd29lMDIifQ.gSWjNbBSpIFzDXU2X5YCiQ';
     map = new mapboxgl.Map({
@@ -143,10 +187,12 @@ function basemap(){
     });
 
     map.on("load",function(){
-        map.setFilter("tracts", ["==",  "AFFGEOID", ""]);
-        map.on("click",function(){
+      //  map.setFilter("tracts", ["==",  "AFFGEOID", ""]);
+        map.on("click",function(e){
+            var features = map.queryRenderedFeatures(e.point,"tracts");
+            var geoId = features[0]["properties"]["AFFGEOID"]
           //  filterByMap(map)
+            getFeatureData(geoId)
         })
     })
-    console.log("map")
 }  
