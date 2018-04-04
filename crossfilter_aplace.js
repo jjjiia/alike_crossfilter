@@ -13,24 +13,31 @@ var dataKeys = null
 var census = null
 var censusDictionary = null
 var currentTopics = ["SE_T145_002","SE_T013_002","SE_T025_005","SE_T147_001"]
-
-queue()
-    .defer(d3.csv,"census_filtered_population_10.csv")
-    .defer(d3.json,"census_keys_short.json")
-    .defer(d3.csv,"geo_names.csv")
-    .defer(d3.csv,"centroids.csv")
-    .await(dataDidLoad);
-    
+$(function() {
+    queue()
+        .defer(d3.csv,"census_filtered_population_10.csv")
+        .defer(d3.json,"census_keys_short.json")
+        .defer(d3.csv,"geo_names.csv")
+        .defer(d3.csv,"centroids.csv")
+        .await(dataDidLoad);
+})
+  
 function dataDidLoad(error,censusfile,censusDictionaryFile,namesFile,centroidsFile){
     dataKeys = censusDictionaryFile
     census = censusfile
-    names = namesFile
-    centroids = centroidsFile
+    names = makeDictionary(namesFile)
+    centroids = makeDictionary(centroidsFile)
     censusDictionary = makeDictionary(census)
     
     basemap()
     setupCharts()
+    
+    $("#likePlaces").resizable({
+        handles: 'w'
+    });
+  //  $("left-panel").resizable()
 }
+
 function makeDictionary(data){
     var formatted = {}
     for(var i in data){
@@ -98,7 +105,6 @@ function setupCharts(){
 function setupBar(topic,ndx,t){
     var chartContainer = d3.select("#charts")
             .append("div")
-            .attr("class","row")
             .attr("id","_"+t)
     var chartTitle = addSelect(chartContainer,topic,ndx,t)
     var chartFilter = chartContainer.append("div")
@@ -114,7 +120,7 @@ function setupBar(topic,ndx,t){
     var chartContent = chartContainer.append("div")
         .attr("id","chart_"+t).attr("class","chartContent")
 }
-function  getIds(filteredData){
+function getIds(filteredData){
     var gids = []
     filteredData.forEach(function (d) {
         var gid = d["Gid"].replace("14000US","1400000US")
@@ -126,11 +132,50 @@ function filtermap(filteredData){
     var filteredIds = getIds(filteredData)
     var filter =  ["in","AFFGEOID"].concat(filteredIds)
     map.setFilter("tracts", filter);
-//    d3.selectAll(".smallMap").remove()
-   // for(var i in filteredIds.slice(0,20)){
-   //     var gid = filteredIds.slice(0,20)[i]
-   //    // drawSmallMap(gid)
-   // }
+    d3.selectAll(".smallMaps").remove()
+    
+    for(var i in filteredIds.slice(0,50)){
+       // console.log(gid)
+        var gid = filteredIds.slice(0,50)[i]
+        
+        if(names[gid]!=undefined && centroids[gid]!=undefined){
+            d3.select("#likePlaces").append("div").attr("class","smallMaps").attr("id","_"+gid)
+                .style("width","150px")
+                .style("height","150px")
+                .style("display","inline-block")
+                .style("bottom","1px solid black")
+                .style("margin","0px")
+                .style("padding","0px")
+        
+            d3.select("#_"+gid).append("div").attr("id","smallmap_"+gid) 
+                .style("width","150px")
+                .style("height","150px")
+                .attr("class","inner")
+                .style("z-index",1)
+                .style("border","1px solid black")
+            d3.select("#_"+gid).append("div").attr("class","smallMapsCaption") 
+                .style("width","150px")
+                .style("height","50px")
+                .attr("class","inner")
+                .style("padding","5px")
+               // .style("border","1px solid black")
+                .html(names[gid]["Geo_NAME"].split(", ").join("<br/>"))
+                .style("z-index",9)
+        
+            drawSmallMap(gid)
+        }
+    }
+    
+}
+function drawSmallMap(div){
+    var centroid = [centroids[div].lat,centroids[div].lng]
+    L.mapbox.accessToken = 'pk.eyJ1IjoiampqaWlhMTIzIiwiYSI6ImNpbDQ0Z2s1OTN1N3R1eWtzNTVrd29lMDIifQ.gSWjNbBSpIFzDXU2X5YCiQ';
+    var smallMap = L.mapbox.map("smallmap_"+div)
+        .setView(centroid, 10);
+    L.mapbox.styleLayer('mapbox://styles/jjjiia123/cjfcwpr9e7wzi2rmkp8al64h7').addTo(smallMap);
+
+    smallMap.removeControl(smallMap.zoomControl);
+    d3.selectAll(".leaflet-control-container").remove()
     
 }
 function drawBar(topic,ndx,t){
@@ -183,10 +228,21 @@ function basemap(){
         container: 'map',
         style: 'mapbox://styles/jjjiia123/cjfgqj2dscri62ro3h9ysrzi3',
         center: [-96, 37.8],
-        zoom: 4
+        zoom: 4,
+        minZoom:4    
     });
-
+    
+    map.addControl(new mapboxgl.NavigationControl(),"top-right");
+    map.addControl(new mapboxgl.GeolocateControl({
+        positionOptions: {
+            enableHighAccuracy: true
+        },
+        trackUserLocation: true
+    }),"top-right");
     map.on("load",function(){
+      //  var filter = ["in","AFFGEOID"].concat(gidsPopulation100)
+      //  map.setFilter("tracts", filter);
+        
       //  map.setFilter("tracts", ["==",  "AFFGEOID", ""]);
         map.on("click",function(e){
             var features = map.queryRenderedFeatures(e.point,"tracts");
