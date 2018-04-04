@@ -240,9 +240,9 @@ function basemap(){
         trackUserLocation: true
     }),"top-right");
     map.on("load",function(){
+       
       //  var filter = ["in","AFFGEOID"].concat(gidsPopulation100)
       //  map.setFilter("tracts", filter);
-        
       //  map.setFilter("tracts", ["==",  "AFFGEOID", ""]);
         map.on("click",function(e){
             var features = map.queryRenderedFeatures(e.point,"tracts");
