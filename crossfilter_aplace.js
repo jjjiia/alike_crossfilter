@@ -143,7 +143,7 @@ function filtermap(filteredData){
                 .style("width","150px")
                 .style("height","150px")
                 .style("display","inline-block")
-                .style("bottom","1px solid black")
+                //.style("bottom","1px solid black")
                 .style("margin","0px")
                 .style("padding","0px")
         
@@ -152,16 +152,27 @@ function filtermap(filteredData){
                 .style("height","150px")
                 .attr("class","inner")
                 .style("z-index",1)
-                .style("border","1px solid black")
+            
             d3.select("#_"+gid).append("div").attr("class","smallMapsCaption") 
                 .style("width","150px")
-                .style("height","50px")
+                .style("height","150px")
                 .attr("class","inner")
-                .style("padding","5px")
+               // .style("padding","5px")
+                .attr("id","caption_"+gid)
                // .style("border","1px solid black")
                 .html(names[gid]["Geo_NAME"].split(", ").join("<br/>"))
                 .style("z-index",9)
-        
+                .style("cursor","pointer")
+            .on("mouseover",function(){
+                d3.select(this).style("background-color","rgba(255,20,20,.4)")
+            })
+            .on("mouseout",function(){
+                d3.select(this).style("background-color","rgba(255,20,20,0)")
+            })
+            .on("click",function(){
+                var gid = d3.select(this).attr("id").split("_")[1]
+                getFeatureData(gid)
+            })
             drawSmallMap(gid)
         }
     }
@@ -249,6 +260,7 @@ function basemap(){
             var geoId = features[0]["properties"]["AFFGEOID"]
           //  filterByMap(map)
             getFeatureData(geoId)
+            d3.select("#placeName").html(names[geoId]["Geo_NAME"])
         })
     })
 }  
